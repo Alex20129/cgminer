@@ -1,0 +1,143 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+
+PROJECT(cgminer)
+
+OPTION(DRIVER_AVALON2 "Build for Avalon 2" OFF)
+OPTION(DRIVER_AVALON4 "Build for Avalon 4" OFF)
+OPTION(DRIVER_AVALON7 "Build for Avalon 7" OFF)
+OPTION(DRIVER_AVALON8 "Build for Avalon 8" OFF)
+OPTION(DRIVER_AVALON9 "Build for Avalon 9" OFF)
+OPTION(DRIVER_ANTMINER_S9 "Build with driver for Antminer S9" OFF)
+OPTION(DRIVER_ANTMINER_T9 "Build with driver for Antminer T9" OFF)
+OPTION(DRIVER_ANTMINER_L3 "Build with driver for Antminer L3" OFF)
+OPTION(DRIVER_S19XPH "Build with driver for S19XP Hydro" OFF)
+OPTION(DRIVER_S21 "Build with driver for S21" ON)
+
+SET(TARGET "arm-linux-gnueabihf")
+#SET(TARGET "aarch64-linux-gnu")
+
+SET(TOOLBOX "$ENV{HOME}/gcc-linaro-7.5.0-2019.12-x86_64_${TARGET}")
+
+SET(CMAKE_SYSROOT "${TOOLBOX}/${TARGET}")
+
+SET(CMAKE_C_COMPILER ${TOOLBOX}/bin/${TARGET}-gcc)
+#SET(CMAKE_C_FLAGS "-O0 -Wall -fsanitize=thread")
+#SET(CMAKE_C_FLAGS "-O0 -Wall -fsanitize=address")
+#SET(CMAKE_C_FLAGS "-O0 -Wall -Wextra -Werror")
+SET(CMAKE_C_FLAGS "-O0 -Wall -Wextra")
+
+#INCLUDE_DIRECTORIES(/usr/${PLATFORM}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/ccan)
+
+#LINK_DIRECTORIES(/usr/${PLATFORM}/lib)
+LINK_DIRECTORIES(${CMAKE_SYSROOT}/lib)
+LINK_DIRECTORIES(${CMAKE_SYSROOT}/usr/lib)
+
+LINK_LIBRARIES(pthread m z ssl crypto jansson)
+
+IF(DRIVER_AVALON2)
+  ADD_DEFINITIONS(-DUSE_AVALON2=1)
+  FILE(GLOB DRIVER_AVALON2_SRC "driver-avalon-2/*.c" "driver-avalon-2/*.h")
+  INCLUDE_DIRECTORIES("driver-avalon-2")
+ENDIF()
+
+IF(DRIVER_AVALON4)
+  ADD_DEFINITIONS(-DUSE_AVALON4=1)
+  FILE(GLOB DRIVER_AVALON4_SRC "driver-avalon-4/*.c" "driver-avalon-4/*.h")
+  INCLUDE_DIRECTORIES("driver-avalon-4")
+ENDIF()
+
+IF(DRIVER_AVALON7)
+  ADD_DEFINITIONS(-DUSE_AVALON7=1)
+  FILE(GLOB DRIVER_AVALON7_SRC "driver-avalon-7/*.c" "driver-avalon-7/*.h")
+  INCLUDE_DIRECTORIES("driver-avalon-7")
+ENDIF()
+
+IF(DRIVER_AVALON8)
+  ADD_DEFINITIONS(-DUSE_AVALON8=1)
+  FILE(GLOB DRIVER_AVALON8_SRC "driver-avalon-8/*.c" "driver-avalon-8/*.h")
+  INCLUDE_DIRECTORIES("driver-avalon-8")
+ENDIF()
+
+IF(DRIVER_AVALON9)
+  ADD_DEFINITIONS(-DUSE_AVALON9=1)
+  FILE(GLOB DRIVER_AVALON9_SRC "driver-avalon-9/*.c" "driver-avalon-9/*.h")
+  INCLUDE_DIRECTORIES("driver-avalon-9")
+  SET(USE_USBUTILS TRUE)
+ENDIF()
+
+IF(DRIVER_ANTMINER_S9)
+  ADD_DEFINITIONS(-DUSE_ANTMINER_S9=1)
+  ADD_DEFINITIONS(-DENABLE_ASIC_BOOST=1)
+  FILE(GLOB DRIVER_ANTMINER_C5_SRC "driver-bitmain-c5/*.c" "driver-bitmain-c5/*.h")
+  INCLUDE_DIRECTORIES("driver-bitmain-c5")
+ENDIF()
+
+IF(DRIVER_ANTMINER_T9)
+  ADD_DEFINITIONS(-DUSE_ANTMINER_T9=1)
+  ADD_DEFINITIONS(-DENABLE_ASIC_BOOST=1)
+  FILE(GLOB DRIVER_ANTMINER_C5_SRC "driver-bitmain-c5/*.c" "driver-bitmain-c5/*.h")
+  INCLUDE_DIRECTORIES("driver-bitmain-c5")
+ENDIF()
+
+IF(DRIVER_ANTMINER_L3)
+  ADD_DEFINITIONS(-DUSE_ANTMINER_L3=1)
+  FILE(GLOB DRIVER_ANTMINER_L3_SRC "driver-bitmain-l3/*.c" "driver-bitmain-l3/*.h")
+  INCLUDE_DIRECTORIES("driver-bitmain-l3")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv7-a -mfpu=neon")
+ENDIF()
+
+IF(DRIVER_S19XPH)
+  ADD_DEFINITIONS(-DUSE_S19XPH_DRIVER=1)
+  ADD_DEFINITIONS(-DENABLE_ASIC_BOOST=1)
+  ADD_DEFINITIONS(-DFIRMWARE_NAME="S19 SMW Firmware")
+  ADD_DEFINITIONS(-DFIRMWARE_VERSION="0.1.8")
+  FILE(GLOB DRIVER_S19XPH_SRC
+	  "driver-s19xph/*.c"
+	  "driver-s19xph/*.h"
+	  "driver-apw11/*.c"
+	  "driver-apw11/*.h")
+  LINK_LIBRARIES(gpiod)
+  INCLUDE_DIRECTORIES("driver-s19xph")
+  INCLUDE_DIRECTORIES("driver-apw11")
+ENDIF()
+
+IF(DRIVER_S21)
+  ADD_DEFINITIONS(-DUSE_S21_DRIVER=1)
+  ADD_DEFINITIONS(-DENABLE_ASIC_BOOST=1)
+  ADD_DEFINITIONS(-DFIRMWARE_NAME="S21 SMW Firmware")
+  ADD_DEFINITIONS(-DFIRMWARE_VERSION="0.1.8")
+  FILE(GLOB DRIVER_S21_SRC
+	  "driver-s21/*.c"
+	  "driver-s21/*.h"
+	  "driver-apw17/*.c"
+	  "driver-apw17/*.h"
+	  "softi2c/*.c"
+	  "softi2c/*.h")
+  LINK_LIBRARIES(gpiod)
+  INCLUDE_DIRECTORIES("driver-s21")
+  INCLUDE_DIRECTORIES("driver-apw17")
+  INCLUDE_DIRECTORIES("softi2c")
+ENDIF()
+
+IF(USE_USBUTILS)
+  ADD_DEFINITIONS(-DUSE_USBUTILS=1)
+  FILE(GLOB USBUTILS_SRC "usbutils/*.c" "usbutils/*.h")
+  INCLUDE_DIRECTORIES("usbutils")
+  LINK_LIBRARIES(usb udev)
+ENDIF()
+
+FILE(GLOB CGMINER_SRC "${CMAKE_SOURCE_DIR}/*.c" "${CMAKE_SOURCE_DIR}/*.h" "ccan/opt/*.c" "ccan/opt/*.h")
+
+ADD_EXECUTABLE(${PROJECT_NAME}
+               ${CGMINER_SRC}
+               ${DRIVER_AVALON2_SRC}
+               ${DRIVER_AVALON4_SRC}
+               ${DRIVER_AVALON7_SRC}
+               ${DRIVER_AVALON8_SRC}
+               ${DRIVER_AVALON9_SRC}
+			   ${DRIVER_ANTMINER_C5_SRC}
+			   ${DRIVER_ANTMINER_L3_SRC}
+			   ${DRIVER_S19XPH_SRC}
+			   ${DRIVER_S21_SRC}
+               ${USBUTILS_SRC})
