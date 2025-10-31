@@ -4,10 +4,6 @@ Bitcoin miner written in C. This is the classic 'cgminer' adapted to work with A
 
 ## Description
 
-This project is a Bitcoin mining implementation written primarily in C (96%), with some C++ (3.8%) and CMake (0.2%) components.
-
-## Features
-
 - Bitcoin mining functionality
 - Written primarily in C
 - Command-line interface
